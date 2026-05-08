@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Apparka GO — Reconoce a tus Líderes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+:root{
+  --bg:#080808;--bg2:#111;--card:#181818;--border:#242424;
+  --fuc:#C9005C;--fuc2:#ff0070;--fuc3:#ff4d9e;
+  --text:#fff;--muted:#777;--r:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 10px;background:rgba(8,8,8,.95);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);}
+.logo-img{height:34px;object-fit:contain;}
+.pill{background:rgba(201,0,92,.18);border:1px solid rgba(201,0,92,.35);border-radius:20px;padding:5px 13px;font-size:12px;font-weight:800;color:var(--fuc);transition:all .3s;}
+
+/* PROGRESS */
+.prog-wrap{padding:8px 18px 0;background:var(--bg);}
+.prog-track{height:4px;background:var(--border);border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--fuc),var(--fuc3));border-radius:10px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;}
+
+/* SCREENS */
+.screen{display:none;padding:18px 16px 90px;min-height:80vh;}
+.screen.active{display:block;animation:sIn .35s cubic-bezier(.4,0,.2,1);}
+@keyframes sIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+.screen.back-anim{animation:sBack .35s cubic-bezier(.4,0,.2,1);}
+@keyframes sBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+
+/* WELCOME */
+.wlc{text-align:center;padding:24px 0 16px;}
+.wlc .logo-big{display:block;margin:0 auto 20px;height:56px;}
+.wlc h1{font-size:25px;font-weight:900;line-height:1.25;margin-bottom:10px;}
+.wlc h1 em{font-style:normal;color:var(--fuc);}
+.wlc p{color:var(--muted);font-size:14.5px;line-height:1.65;max-width:310px;margin:0 auto 24px;}
+.steps-row{display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.sdot{display:flex;flex-direction:column;align-items:center;gap:5px;width:84px;}
+.sdot .ico{width:46px;height:46px;border-radius:50%;background:rgba(201,0,92,.1);border:2px solid rgba(201,0,92,.4);display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .3s;}
+.sdot span{font-size:11px;color:var(--muted);font-weight:700;text-align:center;line-height:1.25;}
+.sline{flex:1;height:2px;background:linear-gradient(90deg,rgba(201,0,92,.4),rgba(201,0,92,.1));max-width:28px;}
+
+/* SECTION HEADER */
+.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(201,0,92,.1);border:1px solid rgba(201,0,92,.25);border-radius:30px;padding:4px 12px;font-size:11px;font-weight:800;color:var(--fuc);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+.chip .num{background:var(--fuc);color:#fff;border-radius:50%;width:17px;height:17px;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.stit{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:4px;}
+.stit em{font-style:normal;color:var(--fuc);}
+.shint{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.4;}
+
+/* ═══ CARDS ═══ */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pc{
+  background:var(--card);
+  border:2px solid var(--border);
+  border-radius:var(--r);
+  padding:16px 10px 13px;
+  text-align:center;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  transition:transform .18s cubic-bezier(.4,0,.2,1), border-color .18s, background .18s, box-shadow .18s;
+  user-select:none;
+}
+/* Shimmer top bar */
+.pc::before{
+  content:'';position:absolute;top:0;left:-100%;width:200%;height:3px;
+  background:linear-gradient(90deg,transparent,var(--fuc),var(--fuc3),transparent);
+  transition:left .4s ease;
+}
+.pc:active{transform:scale(.93);}
+
+/* SELECTED state */
+.pc.sel{
+  border-color:var(--fuc);
+  background:rgba(201,0,92,.08);
+  box-shadow:0 0 0 3px rgba(201,0,92,.2), 0 8px 32px rgba(201,0,92,.25);
+  transform:translateY(-3px) scale(1.02);
+}
+.pc.sel::before{left:0;}
+.pc.sel .chk{opacity:1;transform:scale(1);}
+
+.pc.sel .pn{color:var(--c,var(--fuc));}
+.pc{--c:#C9005C;}
+.pc .av{border-color:color-mix(in srgb,var(--c) 30%,var(--border));}
+.pc:hover .av{border-color:var(--c);}
+.pc.sel{border-color:var(--c)!important;background:color-mix(in srgb,var(--c) 8%,var(--card));box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 20%,transparent),0 8px 32px color-mix(in srgb,var(--c) 25%,transparent);}
+.pc.sel .av{border-color:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent);}
+
+/* RIPPLE */
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(201,0,92,.35);
+  transform:scale(0);
+  animation:rip .5s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rip{to{transform:scale(4);opacity:0;}}
+
+/* AVATAR */
+.av{
+  width:76px;height:76px;border-radius:50%;margin:0 auto 10px;
+  border:2.5px solid var(--border);overflow:hidden;background:var(--bg2);
+  display:flex;align-items:center;justify-content:center;position:relative;
+  transition:border-color .2s, box-shadow .2s, transform .2s;
+}
+.av img{width:100%;height:100%;object-fit:cover;display:block;}
+.av .ini{font-size:22px;font-weight:900;color:#fff;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.chk{
+  position:absolute;bottom:-1px;right:-1px;
+  width:24px;height:24px;border-radius:50%;
+  background:var(--fuc);border:2px solid var(--bg);
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  opacity:0;transform:scale(.2);
+  transition:all .3s cubic-bezier(.68,-.55,.27,1.55);
+}
+.pn{font-size:15px;font-weight:900;line-height:1.25;min-height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:3px;transition:color .2s;}
+.pr{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.2px;}
+.grid.big .av{width:84px;height:84px;}
+.grid.big .pn{font-size:15.5px;}
+
+/* PULSE RING on select */
+@keyframes pulseRing{
+  0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(201,0,92,.6);}
+  70%{transform:scale(1);box-shadow:0 0 0 12px rgba(201,0,92,0);}
+  100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(201,0,92,0);}
+}
+.av.pulse-once{animation:pulseRing .5s ease-out;}
+
+/* SELECTED BANNER */
+.selban{
+  display:none;align-items:center;gap:12px;
+  background:rgba(201,0,92,.1);border:1px solid rgba(201,0,92,.3);
+  border-radius:14px;padding:12px 14px;margin-top:14px;
+  animation:banIn .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes banIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.selban.on{display:flex;}
+.selban .si{font-size:22px;}
+.selban .sl{font-size:10px;color:var(--fuc);font-weight:800;text-transform:uppercase;letter-spacing:.3px;}
+.selban .sn{font-size:14px;font-weight:800;}
+
+/* AUTO MSG */
+.automsg{text-align:center;color:var(--muted);font-size:13px;margin-top:12px;display:none;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.automsg.on{display:block;}
+.abar{height:3px;background:var(--border);border-radius:3px;margin:7px auto 0;width:120px;overflow:hidden;}
+.abarfill{height:100%;background:linear-gradient(90deg,var(--fuc),var(--fuc3));border-radius:3px;animation:afill .9s linear forwards;}
+@keyframes afill{from{width:0}to{width:100%}}
+
+/* BUTTONS */
+.btn{
+  display:block;width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--fuc),var(--fuc2));
+  color:#fff;font-size:15px;font-weight:800;border:none;
+  border-radius:var(--r);cursor:pointer;text-align:center;
+  transition:opacity .15s,transform .12s,box-shadow .15s;
+  margin-top:14px;font-family:'Nunito',sans-serif;letter-spacing:.2px;
+  box-shadow:0 4px 20px rgba(201,0,92,.35);
+}
+.btn:hover{box-shadow:0 6px 28px rgba(201,0,92,.5);transform:translateY(-1px);}
+.btn:active{transform:scale(.97);box-shadow:0 2px 10px rgba(201,0,92,.3);}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn.ghost{
+  background:transparent;border:2px solid var(--border);color:var(--muted);
+  margin-top:8px;font-size:13px;box-shadow:none;
+}
+.btn.ghost:hover{border-color:var(--fuc);color:var(--fuc);box-shadow:none;transform:none;}
+.btn.wsp{
+  background:linear-gradient(135deg,#25D366,#1aab54);
+  box-shadow:0 4px 20px rgba(37,211,102,.35);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn.wsp:hover{box-shadow:0 6px 28px rgba(37,211,102,.5);}
+
+/* CONFIRM */
+.cfhero{text-align:center;padding:28px 0 16px;}
+.cfhero .cficon{font-size:72px;display:block;animation:popIn .7s cubic-bezier(.68,-.55,.27,1.55);margin-bottom:12px;}
+@keyframes popIn{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.cftit{font-size:28px;font-weight:900;margin-bottom:4px;}
+.cfsub{color:var(--muted);font-size:14px;margin-bottom:22px;}
+
+.tlist{display:flex;flex-direction:column;gap:9px;margin-bottom:20px;}
+.trow{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border-radius:14px;padding:13px;
+  border:1px solid var(--border);
+  animation:rowIn .4s cubic-bezier(.4,0,.2,1) both;
+}
+.trow:nth-child(1){animation-delay:.1s}
+.trow:nth-child(2){animation-delay:.22s}
+.trow:nth-child(3){animation-delay:.34s}
+@keyframes rowIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+.tav{width:50px;height:50px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--fuc);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;}
+.tav img{width:100%;height:100%;object-fit:cover;}
+.tinf{flex:1;min-width:0;}
+.trol{font-size:10px;color:var(--fuc);font-weight:800;text-transform:uppercase;letter-spacing:.3px;}
+.tnm{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tck{font-size:20px;animation:checkPop .4s .5s cubic-bezier(.68,-.55,.27,1.55) both;}
+@keyframes checkPop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* SHARE */
+.share-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:10px;text-align:center;}
+.share-box .sh-tit{font-size:14px;font-weight:800;margin-bottom:3px;}
+.share-box .sh-sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.share-url{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:11px;color:var(--muted);word-break:break-all;margin-bottom:11px;font-family:monospace;line-height:1.5;text-align:left;}
+
+/* FLOATING PARTICLES on select */
+.particle{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:999;
+  animation:ptUp 0.8s ease-out forwards;
+}
+@keyframes ptUp{
+  0%{opacity:1;transform:translate(0,0) scale(1);}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0);}
+}
+
+/* CONFETTI */
+.cf-wrap{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none;}
+.cf-wrap.on{display:block;}
+.cp{position:absolute;border-radius:3px;animation:cfall 3s ease-in forwards;}
+@keyframes cfall{from{transform:translateY(-20px) rotate(0);opacity:1}to{transform:translateY(110vh) rotate(900deg);opacity:0}}
+
+/* SCORE */
+.score-bar{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:16px;}
+.score-ico{font-size:20px;}
+.score-txt{font-size:13px;color:var(--muted);}
+.score-txt b{color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="cf-wrap" id="confetti"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <img class="logo-img" src="data:image/png;base64,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" alt="Apparka GO">
+  <div class="pill" id="pill">Inicio</div>
+</div>
+<div class="prog-wrap">
+  <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+</div>
+
+<!-- ═══ BIENVENIDA ═══ -->
+<div class="screen active" id="sc-welcome">
+  <div class="wlc">
+    <img class="logo-big" src="data:image/png;base64,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" alt="Apparka GO">
+    <h1>¡Hola, bienvenido/a a<br><em>Apparka GO!</em></h1>
+    <p>En los próximos pasos identificarás a tus líderes de operación. Es rápido, visual y muy importante. ¡Vamos! 💪</p>
+  </div>
+  <div class="steps-row">
+    <div class="sdot"><div class="ico">👔</div><span>Jefe de<br>Negocio</span></div>
+    <div class="sline"></div>
+    <div class="sdot"><div class="ico">🗂️</div><span>Adminis-<br>trador</span></div>
+    <div class="sline"></div>
+    <div class="sdot"><div class="ico">🧑‍💼</div><span>Super-<br>visor</span></div>
+  </div>
+  <button class="btn" onclick="goJefe(false)">¡Comenzar ahora! →</button>
+</div>
+
+<!-- ═══ JEFE ═══ -->
+<div class="screen" id="sc-jefe">
+  <div class="chip"><span class="num">1</span>Paso 1 de 3</div>
+  <div class="stit">¿Quién es tu<br><em>Jefe de Negocio?</em></div>
+  <div class="shint">Toca su foto — avanzarás automáticamente al siguiente paso</div>
+  <div class="grid big" id="jefesGrid"></div>
+  <div class="selban" id="jefeBan">
+    <span class="si">✅</span>
+    <div class="sinfo"><div class="sl">Seleccionaste</div><div class="sn" id="jefeNm"></div></div>
+  </div>
+  <div class="automsg" id="jefeAuto">
+    Cargando tus administradores…
+    <div class="abar"><div class="abarfill" id="jefeBar"></div></div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN ═══ -->
+<div class="screen" id="sc-admin">
+  <div class="chip"><span class="num">2</span>Paso 2 de 3</div>
+  <div class="stit">¿Quién es tu<br><em>Administrador?</em></div>
+  <div class="shint" id="adminHint">Solo los administradores de tu jefe</div>
+  <div class="grid" id="adminsGrid"></div>
+  <div class="selban" id="adminBan">
+    <span class="si">✅</span>
+    <div class="sinfo"><div class="sl">Seleccionaste</div><div class="sn" id="adminNm"></div></div>
+  </div>
+  <div class="automsg" id="adminAuto">
+    Cargando tus supervisores…
+    <div class="abar"><div class="abarfill" id="adminBar"></div></div>
+  </div>
+  <button class="btn ghost" onclick="goBack('jefe')">← Cambiar Jefe de Negocio</button>
+</div>
+
+<!-- ═══ SUPERVISOR ═══ -->
+<div class="screen" id="sc-sup">
+  <div class="chip"><span class="num">3</span>Paso 3 de 3</div>
+  <div class="stit">¿Quién es tu<br><em>Supervisor?</em></div>
+  <div class="shint" id="supHint">Solo los supervisores de tu administrador</div>
+  <div class="grid" id="supsGrid"></div>
+  <div class="selban" id="supBan">
+    <span class="si">✅</span>
+    <div class="sinfo"><div class="sl">Seleccionaste</div><div class="sn" id="supNm"></div></div>
+  </div>
+  <div class="automsg" id="supAuto">
+    Preparando tu equipo…
+    <div class="abar"><div class="abarfill" id="supBar"></div></div>
+  </div>
+  <button class="btn ghost" onclick="goBack('admin')">← Cambiar Administrador</button>
+</div>
+
+<!-- ═══ CONFIRMACIÓN ═══ -->
+<div class="screen" id="sc-fin">
+  <div class="cfhero">
+    <span class="cficon">🎉</span>
+    <div class="cftit">¡Equipo identificado!</div>
+    <div class="cfsub">Ya conoces a tus líderes de operación</div>
+  </div>
+  <div class="tlist" id="teamList"></div>
+  <div class="share-box">
+    <div class="sh-tit">📲 Comparte con tus compañeros</div>
+    <div class="sh-sub">Envíales el enlace para que también identifiquen a sus líderes</div>
+    <div class="share-url" id="shareUrl">—</div>
+    <a class="btn wsp" id="btnWsp" href="#" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar por WhatsApp
+    </a>
+  </div>
+  <button class="btn ghost" style="margin-top:12px" onclick="restart()">🔄 Volver al inicio</button>
+</div>
+
+<script>
+const H = [{"nombre": "Gloria Mora", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44244962.jpg", "admins": [{"nombre": "Alejandra Vega Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70022351.jpg", "supervisores": [{"nombre": "Luis Javier Garcia Angulo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75444151.jpg", "color": "#E85D04"}, {"nombre": "Flormira Julca Lozada", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42198049.jpg", "color": "#F48C06"}, {"nombre": "CARLOS RAFAEL MENESES ARRIETA", "foto": "", "color": "#DC2F02"}], "color": "#E85D04"}, {"nombre": "Joshua Enrique Arenas Peralta", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70751253.jpg", "supervisores": [{"nombre": "Katherine Elizabeth Apaza Acuña", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42207746.jpg", "color": "#E85D04"}, {"nombre": "Bryan Charaja Ayquipa", "foto": "", "color": "#F48C06"}, {"nombre": "Fabiola Alejandra Montoya Caro", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72800740.jpg", "color": "#DC2F02"}], "color": "#F48C06"}, {"nombre": "Xiomara Brilly Quispe Gutierrez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/74372964.jpg", "supervisores": [{"nombre": "Liz Yosari Mejia Julca", "foto": "", "color": "#E85D04"}, {"nombre": "José Antonio Pajuelo Zavala", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42789144.jpg", "color": "#F48C06"}, {"nombre": "Chonyien Frank Kong San Cossio", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70885567.jpg", "color": "#DC2F02"}, {"nombre": "Rosa Arbildo Mendoza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10672919.jpg", "color": "#9D0208"}, {"nombre": "Rafael Nicolas Perez Acuña", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46860807.jpg", "color": "#E36414"}, {"nombre": "Daniel Barrera Chota", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73768128.jpg", "color": "#FB8500"}, {"nombre": "Fabrizio Alonso Trelles Diaz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70878134.jpg", "color": "#E85D04"}, {"nombre": "Andrea Cristina Valdivia Iparraguirre", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44911621.jpg", "color": "#F48C06"}, {"nombre": "Jesus Adolfo Vinces Valdivieso", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42299114.jpg", "color": "#DC2F02"}, {"nombre": "Henrry Hernan Cahuana Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10647190.jpg", "color": "#9D0208"}, {"nombre": "Gustavo Adolfo Almeida Olivares", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43242044.jpg", "color": "#E36414"}, {"nombre": "Jesús Vinces Valdivieso", "foto": "", "color": "#FB8500"}], "color": "#DC2F02"}, {"nombre": "Kelly Melina Luyo Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45414983.jpg", "supervisores": [{"nombre": "John Carlos Arteta Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44643376.jpg", "color": "#E85D04"}, {"nombre": "Anthony Alexander Sánchez Carrión", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70419213.jpg", "color": "#F48C06"}, {"nombre": "Ketsy Yesenia Baldeon Rafael", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41505165.jpg", "color": "#DC2F02"}, {"nombre": "Rosalynd Melissa Olivares Soto", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10810239.jpg", "color": "#9D0208"}, {"nombre": "Henrry Hernan Cahuana Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10647190.jpg", "color": "#E36414"}, {"nombre": "Ivan Espinoza Ayrampo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10199209.jpg", "color": "#FB8500"}, {"nombre": "Maricielo Cano Souza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70975955.jpg", "color": "#E85D04"}, {"nombre": "Miguel Angel Cava Reyes", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10722681.jpg", "color": "#F48C06"}, {"nombre": "Marcia Katiuska Sicard Arce", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46539946.jpg", "color": "#DC2F02"}, {"nombre": "Liliana Quispe Inca", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73203257.jpg", "color": "#9D0208"}, {"nombre": "Flormira Julca Lozada", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42198049.jpg", "color": "#E36414"}, {"nombre": "Tania Edith Torres Zapata", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44374842.jpg", "color": "#FB8500"}, {"nombre": "Nancy Rocio Apaza Amache", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10096662.jpg", "color": "#E85D04"}, {"nombre": "Jacqueline Liset Sanchez Miranda", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/09900612.jpg", "color": "#F48C06"}, {"nombre": "Diana Carolina Barriga Ramirez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/61286208.jpg", "color": "#DC2F02"}, {"nombre": "Luz Marina Yaycate Tamani", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/09593529.jpg", "color": "#9D0208"}], "color": "#9D0208"}, {"nombre": "Evil Johan Yauri Pariona", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46200026.jpg", "supervisores": [{"nombre": "Cinthia Ramirez Torres", "foto": "", "color": "#E85D04"}, {"nombre": "Nilda Tapia Mejia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40137782.jpg", "color": "#F48C06"}], "color": "#E85D04"}, {"nombre": "Dennis Jaime Gonzales Paz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44004689.jpg", "supervisores": [{"nombre": "Fiorela Flores Carpio de Raymond", "foto": "", "color": "#E85D04"}], "color": "#F48C06"}, {"nombre": "Eylen Vargas Bocanegra", "foto": "", "supervisores": [{"nombre": "Thomas Anderson Correa Ordoñez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/71741830.jpg", "color": "#E85D04"}, {"nombre": "Mery Estela Cenepo Silvano", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70445961.jpg", "color": "#F48C06"}], "color": "#DC2F02"}, {"nombre": "Vilma Sheyla Mendoza Zeta", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46596211.jpg", "supervisores": [{"nombre": "Raul Oroche Yaya", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41295073.jpg", "color": "#E85D04"}, {"nombre": "Henrry Hernan Cahuana Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10647190.jpg", "color": "#F48C06"}], "color": "#9D0208"}, {"nombre": "Lennin Braydy Cortegana Castillo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70199357.jpg", "supervisores": [{"nombre": "Juanita Romero Olaya", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/71043102.jpg", "color": "#E85D04"}, {"nombre": "Karina Milagros Barboza Navarro", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47606550.jpg", "color": "#F48C06"}, {"nombre": "Elsa De Los Milagros Rumiche Timaná", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42969283.jpg", "color": "#DC2F02"}, {"nombre": "Yesenia Lizeth Mantilla Riveros", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46136242.jpg", "color": "#9D0208"}], "color": "#E85D04"}, {"nombre": "Susana Olvea Machicao", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43210817.jpg", "supervisores": [{"nombre": "Stefanie Nataly Flores Ortiz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/77471323.jpg", "color": "#E85D04"}, {"nombre": "Oscar Francisco Muro Gervasi", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41449681.jpg", "color": "#F48C06"}, {"nombre": "Ross Mery Noa Aymachoque", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75335054.jpg", "color": "#DC2F02"}], "color": "#F48C06"}, {"nombre": "Venus Estrella Sevillano Arevalo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70368393.jpg", "supervisores": [{"nombre": "Mery Estela Cenepo Silvano", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70445961.jpg", "color": "#E85D04"}], "color": "#DC2F02"}], "color": "#E85D04"}, {"nombre": "Rafael Aguirre", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41849484.jpg", "admins": [{"nombre": "Harry Estuardo Torres Rojas", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10762812.jpg", "supervisores": [{"nombre": "Brithanny Ashlle Delgado Merchor", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46937939.jpg", "color": "#7209B7"}, {"nombre": "Jhan Jhonel Llontop Huacchillo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/74235141.jpg", "color": "#560BAD"}, {"nombre": "Sofia Romy Felix Ramirez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47399754.jpg", "color": "#480CA8"}, {"nombre": "Flavia Ximena Calderon Quintana", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75590229.jpg", "color": "#3A0CA3"}, {"nombre": "Nadia Milagros Casariego de la Cruz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40033173.jpg", "color": "#6A00A8"}, {"nombre": "Sayu Sandra Reque Ramos", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41235074.jpg", "color": "#8B2FC9"}, {"nombre": "Luz Clara Tafur Obregon", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/74233645.jpg", "color": "#7209B7"}, {"nombre": "Luis Antonio Marin Gamarra", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43655022.jpg", "color": "#560BAD"}, {"nombre": "Luz Dalila Tolentino Inocente", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/74980053.jpg", "color": "#480CA8"}], "color": "#7209B7"}, {"nombre": "Vanessa Rubina Salvador", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41520409.jpg", "supervisores": [{"nombre": "Lucy Fababa Morillo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/48730285.jpg", "color": "#7209B7"}, {"nombre": "Yovanna Angelica Quispe Ruiz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73832302.jpg", "color": "#560BAD"}], "color": "#560BAD"}, {"nombre": "Walter Augusto Dalguer Flores", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43710410.jpg", "supervisores": [{"nombre": "Flavia Ximena Calderon Quintana", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75590229.jpg", "color": "#7209B7"}, {"nombre": "Luis Antonio Marin Gamarra", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43655022.jpg", "color": "#560BAD"}, {"nombre": "Nadia Milagros Casariego de la Cruz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40033173.jpg", "color": "#480CA8"}, {"nombre": "Melissa Del Pilar Tello Callañaupa", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43284661.jpg", "color": "#3A0CA3"}, {"nombre": "Gabriela Marina Cruz Alarcon", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/08156506.jpg", "color": "#6A00A8"}, {"nombre": "Brithanny Ashlle Delgado Merchor", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46937939.jpg", "color": "#8B2FC9"}, {"nombre": "Jhan Jhonel Llontop Huacchillo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/74235141.jpg", "color": "#7209B7"}], "color": "#480CA8"}], "color": "#7209B7"}, {"nombre": "Erli Sialer", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41202303.jpg", "admins": [{"nombre": "Marwin Carpio Valdivia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42920033.jpg", "supervisores": [{"nombre": "Yuliana Flor Mogollon Ramirez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76024011.jpg", "color": "#0096C7"}, {"nombre": "Jorge Emerson Beltran Llamocca", "foto": "", "color": "#0077B6"}, {"nombre": "Shanteel Catzi Castillo Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72873290.jpg", "color": "#023E8A"}], "color": "#0096C7"}, {"nombre": "Diana Cecilia Inouye Rantes", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40390623.jpg", "supervisores": [{"nombre": "Giselii Erika Vera Shatyani", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47699370.jpg", "color": "#0096C7"}, {"nombre": "Nilda Yanet Villanueva Quispe", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47636581.jpg", "color": "#0077B6"}, {"nombre": "Leddy Eliunith Calderon Chavez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/48119447.jpg", "color": "#023E8A"}, {"nombre": "Luigi Alberto Mas Huaman", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72397030.jpg", "color": "#00B4D8"}, {"nombre": "Crhistina Janet Perez Melchor", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75435704.jpg", "color": "#0083B0"}, {"nombre": "Vanessa Espinoza Soto", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42239451.jpg", "color": "#004E89"}, {"nombre": "Leonardo Chapoñan Lopez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42182676.jpg", "color": "#0096C7"}], "color": "#0077B6"}, {"nombre": "Diego Daniel Velasquez Cuadros", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46670475.jpg", "supervisores": [{"nombre": "Noelia Ines Navarro Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43552250.jpg", "color": "#0096C7"}, {"nombre": "Junior Rosender Ruiz Calderon", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44082098.jpg", "color": "#0077B6"}, {"nombre": "Jacquelin Haydee Bellido Chinchay", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40524637.jpg", "color": "#023E8A"}, {"nombre": "Sharon Aymee Rodriguez Mendez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46181321.jpg", "color": "#00B4D8"}, {"nombre": "Rosa Mercedes Sanchez Orbe", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43672544.jpg", "color": "#0083B0"}], "color": "#023E8A"}, {"nombre": "Dorian Angello Perez Valdivia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44038724.jpg", "supervisores": [{"nombre": "Elva Marlena Jimenez Benavides", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/06038842.jpg", "color": "#0096C7"}, {"nombre": "Brayan Victor Ramos Condori", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76766988.jpg", "color": "#0077B6"}, {"nombre": "Viviana Vasquez Arista", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75211557.jpg", "color": "#023E8A"}], "color": "#00B4D8"}, {"nombre": "Cynthia Camacho Alvarez del Villar", "foto": "", "supervisores": [{"nombre": "Elizabeth Romero Cruzado", "foto": "", "color": "#0096C7"}, {"nombre": "Vanessa Espinoza Soto", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42239451.jpg", "color": "#0077B6"}, {"nombre": "Edison Borja Castro", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46115514.jpg", "color": "#023E8A"}, {"nombre": "Giovana Lizbeth Barrios Montero", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40643935.jpg", "color": "#00B4D8"}], "color": "#0096C7"}, {"nombre": "Manuel Junior Zevallos Baldeon", "foto": "", "supervisores": [{"nombre": "Darleem Ruth Stephanie Cavero Chipana", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42155080.jpg", "color": "#0096C7"}, {"nombre": "Guido Israel Perez Espinoza", "foto": "", "color": "#0077B6"}], "color": "#0077B6"}, {"nombre": "Niel Pedro Moreno Leyva", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43626860.jpg", "supervisores": [{"nombre": "Christian Stip Shinlui Pacahuala Espinoza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41665111.jpg", "color": "#0096C7"}, {"nombre": "Lizet Quispe Surco", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/77382863.jpg", "color": "#0077B6"}, {"nombre": "Junior Miguel Angel Gomez Alvarez", "foto": "", "color": "#023E8A"}, {"nombre": "Anthony Peralta Jimenez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76027521.jpg", "color": "#00B4D8"}, {"nombre": "Yaynny Gabriela Curay Guerra", "foto": "", "color": "#0083B0"}, {"nombre": "Luis Alfredo Romero Malca", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/48461494.jpg", "color": "#004E89"}, {"nombre": "Yanina Bustillos Rojas", "foto": "", "color": "#0096C7"}, {"nombre": "Mirian Barrientos Bernabe", "foto": "", "color": "#0077B6"}], "color": "#023E8A"}, {"nombre": "Erick Alexis Padilla Ayala", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76136364.jpg", "supervisores": [{"nombre": "Gabriela Magaly Chirieleison Quispe", "foto": "", "color": "#0096C7"}, {"nombre": "Darleem Ruth Stephanie Cavero Chipana", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42155080.jpg", "color": "#0077B6"}, {"nombre": "Maricielo Cano Souza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70975955.jpg", "color": "#023E8A"}, {"nombre": "Rodolfo Adrian Castañeda Vargas", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/61252189.jpg", "color": "#00B4D8"}, {"nombre": "Rosalynd Melissa Olivares Soto", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10810239.jpg", "color": "#0083B0"}, {"nombre": "Jean Guevara Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/71722446.jpg", "color": "#004E89"}, {"nombre": "Jacquelin Haydee Bellido Chinchay", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40524637.jpg", "color": "#0096C7"}], "color": "#00B4D8"}, {"nombre": "Franco Paolo Garcia Zavaleta", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70921840.jpg", "supervisores": [{"nombre": "Cesar Huaicama Yuyarima", "foto": "", "color": "#0096C7"}, {"nombre": "Elvin Joel Rivera Delgado", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76394440.jpg", "color": "#0077B6"}, {"nombre": "Kevinn Yahir Chauca Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70524082.jpg", "color": "#023E8A"}], "color": "#0096C7"}, {"nombre": "Cynthia Camacho Alvarez Del Villar", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41630434.jpg", "supervisores": [{"nombre": "Elizabeth Romero Cruzado", "foto": "", "color": "#0096C7"}, {"nombre": "Edison Borja Castro", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46115514.jpg", "color": "#0077B6"}, {"nombre": "Vanessa Espinoza Soto", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42239451.jpg", "color": "#023E8A"}, {"nombre": "Giovana Lizbeth Barrios Montero", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40643935.jpg", "color": "#00B4D8"}, {"nombre": "Carol Yopla Olguin", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41161271.jpg", "color": "#0083B0"}, {"nombre": "Bryan Daniel Reyna Rodriguez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/61249994.jpg", "color": "#004E89"}, {"nombre": "Jesus Elizabeth Romero Cruzado", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46661809.jpg", "color": "#0096C7"}], "color": "#0077B6"}, {"nombre": "Jorge Antonio Senmache Manayay", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44480604.jpg", "supervisores": [{"nombre": "Elvin Joel Rivera Delgado", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76394440.jpg", "color": "#0096C7"}], "color": "#023E8A"}], "color": "#0096C7"}, {"nombre": "Diego Uriarte", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40889781.jpg", "admins": [{"nombre": "Gerson Alfredo Peña Tello", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70835875.jpg", "supervisores": [{"nombre": "Beatriz Agneha Padin Meza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42148992.jpg", "color": "#2DC653"}, {"nombre": "Maria Felicitas Sanchez Vasquez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/74870723.jpg", "color": "#38B000"}, {"nombre": "Abigail Povis Vasquez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47115433.jpg", "color": "#007200"}, {"nombre": "Liliana Del Pilar Silva Chavez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40679313.jpg", "color": "#70E000"}, {"nombre": "Henry Cristhian Juarez Vite", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/02886314.jpg", "color": "#55A630"}, {"nombre": "Luz Marina Ruiz Vela", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/25841779.jpg", "color": "#80B918"}, {"nombre": "Vanessa Karina Trelles González", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40898953.jpg", "color": "#2DC653"}, {"nombre": "Estefany Luz Blas Marchena", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75602273.jpg", "color": "#38B000"}], "color": "#2DC653"}, {"nombre": "Gaby Esther Novoa Reyes", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43675715.jpg", "supervisores": [{"nombre": "Gigliola Orietta Bahamonde Grasso", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47809571.jpg", "color": "#2DC653"}, {"nombre": "Liliana Del Pilar Silva Chavez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40679313.jpg", "color": "#38B000"}, {"nombre": "Joana Sonia Rodriguez Guerrero", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45435826.jpg", "color": "#007200"}, {"nombre": "Yajaira Estephany Quiroz Arana", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76263374.jpg", "color": "#70E000"}, {"nombre": "Jhonny Miller Gomez Fernandez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45943034.jpg", "color": "#55A630"}], "color": "#38B000"}, {"nombre": "Paul Espinoza Marchena", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43943162.jpg", "supervisores": [{"nombre": "Esperanza Caridad Roca Espejo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45143633.jpg", "color": "#2DC653"}, {"nombre": "Brian Angelo Revoredo Martel", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47750637.jpg", "color": "#38B000"}, {"nombre": "Hugo Joel Calapuja Vilca", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75068797.jpg", "color": "#007200"}, {"nombre": "Daniel Barrera Chota", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73768128.jpg", "color": "#70E000"}, {"nombre": "Luz Marina Zamora Mendoza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43652698.jpg", "color": "#55A630"}, {"nombre": "Ursula Morel Rentería", "foto": "", "color": "#80B918"}, {"nombre": "Brigitte Bellido Estela", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76266959.jpg", "color": "#2DC653"}, {"nombre": "Miguel Angel Rosales Huamani", "foto": "", "color": "#38B000"}, {"nombre": "Geferson Aldair Neira Ludeña", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72904904.jpg", "color": "#007200"}, {"nombre": "Briyith Delhy Arque Tapara", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73502094.jpg", "color": "#70E000"}, {"nombre": "Geraldine Flores Carrasco", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43172879.jpg", "color": "#55A630"}, {"nombre": "Andreé Alvaro Miraval Albornoz", "foto": "", "color": "#80B918"}, {"nombre": "Damariz Koraima Guerra Rios", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/77664606.jpg", "color": "#2DC653"}], "color": "#007200"}, {"nombre": "James David Panez Valentín", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72478131.jpg", "supervisores": [{"nombre": "Irene Celia Perez Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72483423.jpg", "color": "#2DC653"}, {"nombre": "Pilar Quijada Peñaloza", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/44737603.jpg", "color": "#38B000"}, {"nombre": "Elizabeth Adelaida Salas Sabuco", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/09716163.jpg", "color": "#007200"}, {"nombre": "Cristian Huayhua Flores", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42779305.jpg", "color": "#70E000"}, {"nombre": "Isabel León Sánchez", "foto": "", "color": "#55A630"}, {"nombre": "Jorge Luis Mallqui Diaz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75420507.jpg", "color": "#80B918"}, {"nombre": "Liliana Tintaya Achahuanco", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75255302.jpg", "color": "#2DC653"}, {"nombre": "Yuli Fernandez Quispe", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42062002.jpg", "color": "#38B000"}, {"nombre": "Isabel Mirella Leon Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10861900.jpg", "color": "#007200"}], "color": "#70E000"}, {"nombre": "Alfredo Vasquez Alarcon", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/77910540.jpg", "supervisores": [{"nombre": "Denisse Enma Luna Torres", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46436540.jpg", "color": "#2DC653"}, {"nombre": "Vilma Maria Leon Alanya", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42785197.jpg", "color": "#38B000"}, {"nombre": "Magdalena Ana Quispe Quico", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/25845048.jpg", "color": "#007200"}, {"nombre": "Abigail Valle Travesaño", "foto": "", "color": "#70E000"}, {"nombre": "Jose David Torres Vasquez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73735912.jpg", "color": "#55A630"}, {"nombre": "Enrique Tarazona Chamaya", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/06729533.jpg", "color": "#80B918"}, {"nombre": "Cesar Rojas Chocce", "foto": "", "color": "#2DC653"}, {"nombre": "Yrene Yovana Gutierrez Huanca", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40476490.jpg", "color": "#38B000"}], "color": "#2DC653"}], "color": "#2DC653"}, {"nombre": "Carmen Capristán", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42318205.jpg", "admins": [{"nombre": "Jeffrey Axel Vilchez Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73609210.jpg", "supervisores": [{"nombre": "Yessica Mamani Pajuelo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/09956092.jpg", "color": "#C9005C"}, {"nombre": "Herminia Beatriz Romero Paucar", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45200898.jpg", "color": "#E5006A"}, {"nombre": "Rosalinda De la Cruz Inga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72977493.jpg", "color": "#99003D"}], "color": "#C9005C"}, {"nombre": "Arnold Salvador Blas", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73357334.jpg", "supervisores": [{"nombre": "Eduardo Ramos Romero", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40626584.jpg", "color": "#C9005C"}, {"nombre": "Zulema Vicente Nina", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10613997.jpg", "color": "#E5006A"}], "color": "#E5006A"}, {"nombre": "Alejandro Roca Chinarro", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/48530399.jpg", "supervisores": [{"nombre": "Jhon Breyner Pinelo Ortega", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46914848.jpg", "color": "#C9005C"}, {"nombre": "Eduardo Ramos Romero", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40626584.jpg", "color": "#E5006A"}, {"nombre": "Cristian Anthony Rodriguez Castro", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45243825.jpg", "color": "#99003D"}, {"nombre": "Guido Israel Perez Espinoza", "foto": "", "color": "#FF3385"}, {"nombre": "Liz Yosari Mejia Julca", "foto": "", "color": "#B5006B"}, {"nombre": "Ruth Karina Parhuay Leche", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70407405.jpg", "color": "#FF006E"}, {"nombre": "Liz Mejia Julca", "foto": "", "color": "#C9005C"}, {"nombre": "Diego Jara Vargas", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76190223.jpg", "color": "#E5006A"}], "color": "#99003D"}, {"nombre": "Gabriela Liliana Gutierrez Mesias", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40866318.jpg", "supervisores": [{"nombre": "Lisvith Ramirez Valera", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45843645.jpg", "color": "#C9005C"}, {"nombre": "Carmen Rosa Castillon Arias", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/77464025.jpg", "color": "#E5006A"}], "color": "#FF3385"}, {"nombre": "Erick Aguirre Cordova", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47083587.jpg", "supervisores": [{"nombre": "Diego Jara Vargas", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76190223.jpg", "color": "#C9005C"}], "color": "#C9005C"}, {"nombre": "Ruben Hidalgo Apaza Callo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70058438.jpg", "supervisores": [{"nombre": "Elizabeth Rosmery Quispe Mamani", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/70603662.jpg", "color": "#C9005C"}], "color": "#E5006A"}, {"nombre": "Khristian Alvarez Garcia", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72735191.jpg", "supervisores": [{"nombre": "Kerly Liliana Guardia Sangama", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45892457.jpg", "color": "#C9005C"}], "color": "#99003D"}, {"nombre": "Brenda Magallanes Landeo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42286206.jpg", "supervisores": [{"nombre": "Veronica Fuentes Malcohuaccha", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/42385757.jpg", "color": "#C9005C"}], "color": "#FF3385"}, {"nombre": "Victor Ruben Meza Mucha", "foto": "", "supervisores": [{"nombre": "Herminia Beatriz Romero Paucar", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45200898.jpg", "color": "#C9005C"}, {"nombre": "Rosalinda De la Cruz Inga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72977493.jpg", "color": "#E5006A"}], "color": "#C9005C"}, {"nombre": "Franco Aaron Ojeda Sanchez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47282557.jpg", "supervisores": [{"nombre": "Alicia Cusimayta Condori", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46241398.jpg", "color": "#C9005C"}], "color": "#E5006A"}, {"nombre": "Klelia Rosa Del Pilar Garnelo Correa", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73095095.jpg", "supervisores": [{"nombre": "Ines Graciela Carrasco Ticllacure", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41714495.jpg", "color": "#C9005C"}], "color": "#99003D"}, {"nombre": "Lizeth Taype Carbajal", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75221160.jpg", "supervisores": [{"nombre": "Herminia Beatriz Romero Paucar", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45200898.jpg", "color": "#C9005C"}, {"nombre": "Rosalinda De la Cruz Inga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72977493.jpg", "color": "#E5006A"}], "color": "#FF3385"}, {"nombre": "Lizet Taype Carbal", "foto": "", "supervisores": [{"nombre": "Rosalinda De la Cruz Inga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72977493.jpg", "color": "#C9005C"}], "color": "#C9005C"}, {"nombre": "Marjhory Ramos Izquierdo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75716779.jpg", "supervisores": [{"nombre": "Lyngh Tafur Salazar", "foto": "", "color": "#C9005C"}, {"nombre": "Victor Hugo Moreno Torres", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72783880.jpg", "color": "#E5006A"}], "color": "#E5006A"}, {"nombre": "Roberto Leonardo Chung Huanca", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47187986.jpg", "supervisores": [{"nombre": "Roberto Leonardo Chung Huanca", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/47187986.jpg", "color": "#C9005C"}, {"nombre": "Ruben Hidalgo Apaza Callo", "foto": "", "color": "#E5006A"}], "color": "#99003D"}], "color": "#C9005C"}, {"nombre": "Diego Ruiz", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72665835.jpg", "admins": [{"nombre": "Everth Gilberth Contreras Rojas", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43888506.jpg", "supervisores": [{"nombre": "Yvon Dominguez Geldres", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41629805.jpg", "color": "#F4A026"}, {"nombre": "Joaquin Miguel Gutierrez Ciprian", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/72000936.jpg", "color": "#F77F00"}, {"nombre": "Jhonatan Quispe Ccora", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/45937513.jpg", "color": "#D62828"}, {"nombre": "Evelin Erika Lliuyacc Castillo", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75419570.jpg", "color": "#E07A00"}, {"nombre": "Lucia Jesús Olano Burga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40621035.jpg", "color": "#F4B942"}], "color": "#F4A026"}, {"nombre": "Angela Maria Ramos Monzon", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40938505.jpg", "supervisores": [{"nombre": "Oscar Alberto Chunga Morante", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/75495215.jpg", "color": "#F4A026"}, {"nombre": "Lucas Saes Vergaray", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/71080480.jpg", "color": "#F77F00"}], "color": "#F77F00"}, {"nombre": "Carol Kristel Cedano Mendez", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43069971.jpg", "supervisores": [{"nombre": "Lucia Jesús Olano Burga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40621035.jpg", "color": "#F4A026"}, {"nombre": "Karina Evelyn Rodriguez Chirinos", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/73246701.jpg", "color": "#F77F00"}, {"nombre": "Juan Pairazaman Felipe", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/10076860.jpg", "color": "#D62828"}, {"nombre": "Carlos Junior Briones Torres", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/76642652.jpg", "color": "#E07A00"}], "color": "#D62828"}, {"nombre": "Alexander Huaman Osorio", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41353982.jpg", "supervisores": [{"nombre": "Bruno Salas Chiang", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/43421111.jpg", "color": "#F4A026"}, {"nombre": "Dayana Huamani Leon", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/48546634.jpg", "color": "#F77F00"}, {"nombre": "Lucia Jesús Olano Burga", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/40621035.jpg", "color": "#D62828"}], "color": "#E07A00"}, {"nombre": "Doris Cuba Quillahuaman", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/41059650.jpg", "supervisores": [{"nombre": "Giancarlo Garcia Peña", "foto": "https://prdrecursoshumanos.blob.core.windows.net/fotos/SearchByDocument/46671385.jpg", "color": "#F4A026"}], "color": "#F4A026"}], "color": "#F4A026"}];
+let sJ=null,sA=null,sS=null,aT=null;
+
+function ini(n){return(n||'').split(' ').filter(s=>s).slice(0,2).map(s=>s[0]).join('').toUpperCase();}
+
+function mkAv(foto,nombre,sz,color){
+  sz=sz||76;
+  const bg=color||'#C9005C',in2=ini(nombre),fs=Math.round(sz*.27);
+  const iniWithText=foto
+    ?`<div class="ini" style="display:none;background:${bg};width:100%;height:100%;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;">${in2}</div>`
+    :`<div class="ini" style="display:flex;background:${bg};width:100%;height:100%;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;">${in2}</div>`;
+  const imgPart=foto?`<img src="${foto}" alt="${nombre}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`:'';
+  return `<div class="av" style="width:${sz}px;height:${sz}px;">${imgPart}${iniWithText}<div class="chk" style="background:${bg};">✓</div></div>`;
+}
+
+// ─── RIPPLE + PARTICLES ───
+function addRipple(el,e){
+  const rect=el.getBoundingClientRect();
+  const rip=document.createElement('div');
+  rip.className='ripple';
+  const size=Math.max(rect.width,rect.height)*2;
+  const x=(e.clientX||e.touches&&e.touches[0].clientX||rect.width/2+rect.left)-rect.left-size/2;
+  const y=(e.clientY||e.touches&&e.touches[0].clientY||rect.height/2+rect.top)-rect.top-size/2;
+  const c=getComputedStyle(el).getPropertyValue('--c').trim()||'#C9005C';
+  rip.style.cssText=`width:${size}px;height:${size}px;left:${x}px;top:${y}px;background:${c}55;`;
+  el.appendChild(rip);
+  setTimeout(()=>rip.remove(),600);
+}
+
+function spawnParticles(el){
+  const rect=el.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  const cardColor=getComputedStyle(el).getPropertyValue('--c').trim()||'#C9005C';
+  const cols=[cardColor,'#fff',cardColor,'#fff',cardColor];
+  for(let i=0;i<12;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const ang=Math.random()*Math.PI*2;
+    const dist=40+Math.random()*70;
+    const sz=4+Math.random()*6;
+    p.style.cssText=`
+      left:${cx}px;top:${cy}px;
+      width:${sz}px;height:${sz}px;
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      --dx:${Math.cos(ang)*dist}px;
+      --dy:${Math.sin(ang)*dist-30}px;
+      animation-duration:${0.5+Math.random()*0.4}s;
+      margin-left:-${sz/2}px;margin-top:-${sz/2}px;
+    `;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),900);
+  }
+}
+
+function pulseAv(card){
+  const av=card.querySelector('.av');
+  av.classList.remove('pulse-once');
+  void av.offsetWidth;
+  av.classList.add('pulse-once');
+  setTimeout(()=>av.classList.remove('pulse-once'),600);
+}
+
+// ─── SCREEN NAV ───
+function setScreen(id,back){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active','back-anim');});
+  const sc=document.getElementById('sc-'+id);
+  sc.classList.add('active');
+  if(back) sc.classList.add('back-anim');
+  window.scrollTo(0,0);
+}
+
+function setP(step){
+  const pct=[0,10,40,70,100];
+  const lbl=['Inicio','Paso 1/3','Paso 2/3','Paso 3/3','¡Listo!'];
+  document.getElementById('prog').style.width=pct[step]+'%';
+  document.getElementById('pill').textContent=lbl[step];
+}
+
+function goJefe(back){
+  renderJefes();
+  setScreen('jefe',back);
+  setP(1);
+}
+
+function renderJefes(){
+  document.getElementById('jefesGrid').innerHTML=H.map((j,i)=>`
+    <div class="pc" id="jc${i}" style="--c:${j.color}" onclick="selJefe(event,${i})">
+      ${mkAv(j.foto,j.nombre,84,j.color)}
+      <div class="pn">${j.nombre}</div>
+      <div class="pr">Jefe de Negocio</div>
+    </div>`).join('');
+}
+
+function selJefe(e,i){
+  if(aT)clearTimeout(aT);
+  sJ=H[i]; sA=null; sS=null;
+  const card=document.getElementById('jc'+i);
+  addRipple(card,e);
+  spawnParticles(card);
+  pulseAv(card);
+  document.querySelectorAll('#jefesGrid .pc').forEach((c,idx)=>c.classList.toggle('sel',idx===i));
+  document.getElementById('jefeNm').textContent=sJ.nombre;
+  document.getElementById('jefeBan').classList.add('on');
+  const bar=document.getElementById('jefeBar');
+  const el=document.getElementById('jefeAuto');
+  el.classList.add('on');
+  bar.style.animation='none'; void bar.offsetWidth; bar.style.animation='afill .9s linear forwards';
+  aT=setTimeout(()=>{
+    el.classList.remove('on');
+    document.getElementById('jefeBan').classList.remove('on');
+    renderAdmins(); setScreen('admin',false); setP(2);
+    document.getElementById('adminHint').textContent='Admins de: '+sJ.nombre;
+  },950);
+}
+
+function renderAdmins(){
+  document.getElementById('adminsGrid').innerHTML=sJ.admins.map((a,i)=>`
+    <div class="pc" id="ac${i}" style="--c:${a.color||sJ.color}" onclick="selAdmin(event,${i})">
+      ${mkAv(a.foto,a.nombre,76,a.color||sJ.color)}
+      <div class="pn">${a.nombre}</div>
+      <div class="pr">Administrador</div>
+    </div>`).join('');
+  document.getElementById('adminBan').classList.remove('on');
+  document.getElementById('adminAuto').classList.remove('on');
+  document.getElementById('adminNm').textContent='';
+}
+
+function selAdmin(e,i){
+  if(aT)clearTimeout(aT);
+  sA=sJ.admins[i]; sS=null;
+  const card=document.getElementById('ac'+i);
+  addRipple(card,e);
+  spawnParticles(card);
+  pulseAv(card);
+  document.querySelectorAll('#adminsGrid .pc').forEach((c,idx)=>c.classList.toggle('sel',idx===i));
+  document.getElementById('adminNm').textContent=sA.nombre;
+  document.getElementById('adminBan').classList.add('on');
+  const bar=document.getElementById('adminBar');
+  const el=document.getElementById('adminAuto');
+  el.classList.add('on');
+  bar.style.animation='none'; void bar.offsetWidth; bar.style.animation='afill .9s linear forwards';
+  aT=setTimeout(()=>{
+    el.classList.remove('on');
+    document.getElementById('adminBan').classList.remove('on');
+    renderSups(); setScreen('sup',false); setP(3);
+    document.getElementById('supHint').textContent='Supervisores de: '+sA.nombre;
+  },950);
+}
+
+function goSup(back){
+  if(!sA)return;
+  renderSups(); setScreen('sup',back); setP(3);
+  document.getElementById('supHint').textContent='Supervisores de: '+sA.nombre;
+}
+
+function renderSups(){
+  const seen=new Set();
+  window._sups=sA.supervisores.filter(s=>{if(seen.has(s.nombre))return false;seen.add(s.nombre);return true;});
+  document.getElementById('supsGrid').innerHTML=window._sups.map((s,i)=>`
+    <div class="pc" id="spc${i}" style="--c:${s.color||sA.color||sJ.color}" onclick="selSup(event,${i})">
+      ${mkAv(s.foto,s.nombre,76,s.color||sA.color||sJ.color)}
+      <div class="pn">${s.nombre}</div>
+      <div class="pr">Supervisor</div>
+    </div>`).join('');
+  document.getElementById('supBan').classList.remove('on');
+  document.getElementById('supAuto').classList.remove('on');
+  document.getElementById('supNm').textContent='';
+}
+
+function selSup(e,i){
+  if(aT)clearTimeout(aT);
+  sS=window._sups[i];
+  const card=document.getElementById('spc'+i);
+  addRipple(card,e);
+  spawnParticles(card);
+  pulseAv(card);
+  document.querySelectorAll('#supsGrid .pc').forEach((c,idx)=>c.classList.toggle('sel',idx===i));
+  document.getElementById('supNm').textContent=sS.nombre;
+  document.getElementById('supBan').classList.add('on');
+  const bar=document.getElementById('supBar');
+  const el=document.getElementById('supAuto');
+  el.classList.add('on');
+  bar.style.animation='none'; void bar.offsetWidth; bar.style.animation='afill .9s linear forwards';
+  aT=setTimeout(()=>{
+    el.classList.remove('on');
+    document.getElementById('supBan').classList.remove('on');
+    renderTeam(); setScreen('fin',false); setP(4);
+    setupShare(); confetti();
+  },950);
+}
+
+function goFin(){
+  if(!sS)return;
+  renderTeam(); setScreen('fin',false); setP(4);
+  setupShare(); confetti();
+}
+
+function renderTeam(){
+  const items=[
+    {rol:'Jefe de Negocio',p:sJ},
+    {rol:'Administrador',p:sA},
+    {rol:'Supervisor',p:sS}
+  ];
+  document.getElementById('teamList').innerHTML=items.map(item=>{
+    const in2=ini(item.p.nombre),bg=item.p.color||'#C9005C';
+    const imgHtml=item.p.foto
+      ?`<img src="${item.p.foto}" alt="${item.p.nombre}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+        <div style="display:none;width:100%;height:100%;background:${bg};align-items:center;justify-content:center;font-size:16px;font-weight:900;">${in2}</div>`
+      :`<div style="width:100%;height:100%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;">${in2}</div>`;
+    return `<div class="trow"><div class="tav" style="border-color:${bg}">${imgHtml}</div>
+      <div class="tinf"><div class="trol">${item.rol}</div><div class="tnm">${item.p.nombre}</div></div>
+      <div class="tck">✅</div></div>`;
+  }).join('');
+}
+
+function setupShare(){
+  const url=window.location.href.split('?')[0];
+  const msg=encodeURIComponent('👋 ¡Hola! Te comparto la app de Apparka GO para que identifiques a tus líderes de operación 👇\n\n'+url);
+  document.getElementById('shareUrl').textContent=url;
+  document.getElementById('btnWsp').href='https://api.whatsapp.com/send?text='+msg;
+}
+
+function goBack(to){
+  if(aT)clearTimeout(aT);
+  document.getElementById('jefeAuto').classList.remove('on');
+  document.getElementById('jefeBan').classList.remove('on');
+  document.getElementById('adminAuto').classList.remove('on');
+  document.getElementById('adminBan').classList.remove('on');
+  if(to==='jefe'){goJefe(true);}
+  else if(to==='admin'){renderAdmins();setScreen('admin',true);setP(2);}
+}
+
+function restart(){
+  sJ=sA=sS=null;
+  if(aT)clearTimeout(aT);
+  document.getElementById('jefeAuto').classList.remove('on');
+  document.getElementById('jefeBan').classList.remove('on');
+  document.getElementById('adminAuto').classList.remove('on');
+  document.getElementById('adminBan').classList.remove('on');
+  document.getElementById('supAuto').classList.remove('on');
+  document.getElementById('supBan').classList.remove('on');
+  setScreen('welcome',true);setP(0);
+}
+
+function confetti(){
+  const w=document.getElementById('confetti');
+  w.innerHTML='';w.classList.add('on');
+  const cols=['#C9005C','#ff4d9e','#fff','#ff99cc','#ff0070','#C9005C'];
+  for(let i=0;i<80;i++){
+    const el=document.createElement('div');
+    el.className='cp';
+    el.style.cssText=`left:${Math.random()*100}%;top:-15px;background:${cols[~~(Math.random()*cols.length)]};width:${Math.random()*11+4}px;height:${Math.random()*11+4}px;border-radius:${Math.random()>.4?'50%':'3px'};animation-delay:${Math.random()*.9}s;animation-duration:${Math.random()*1.8+2}s;`;
+    w.appendChild(el);
+  }
+  setTimeout(()=>{w.classList.remove('on');w.innerHTML='';},5000);
+}
+
+renderJefes();
+</script>
+</body>
+</html>
