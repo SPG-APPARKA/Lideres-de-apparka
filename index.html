@@ -597,22 +597,16 @@ function sendToSheets(rec){
     'jefe='+encodeURIComponent(rec.jefe||''),
     'fecha='+encodeURIComponent(rec.fecha||'')
   ].join('&');
-  var fullUrl = SHEETS_URL+'?'+params;
-  // Method 1: fetch no-cors (fires the request, Apps Script receives it)
-  fetch(fullUrl,{method:'GET',mode:'no-cors'}).then(function(){
-    if(txt) txt.textContent='✅ Guardado en Google Sheets';
-  }).catch(function(){
-    if(txt) txt.textContent='✅ Guardado en Google Sheets';
-  });
-  // Method 2: image fallback for extra reliability
-  var img=new Image();
-  img.src=fullUrl+'&_='+Date.now();
+  fetch(SHEETS_URL+'?'+params,{method:'GET',mode:'no-cors'})
+    .then(function(){ if(txt) txt.textContent='✅ Guardado en Google Sheets'; })
+    .catch(function(){ if(txt) txt.textContent='✅ Guardado en Google Sheets'; });
 }
 
+
 function openSheets(){
-  if(!SHEETS_URL||SHEETS_URL==='https://script.google.com/macros/s/AKfycbxpRgLtakuNJ0PFJt0krDx4IwvOul9ykcg0MKfn7EH9l86SergAuif-0e0wHgOIPiWf3Q/exec'){alert('Configura tu Google Sheets primero');return;}
-  window.open(SHEETS_URL.replace('/exec','').replace('macros/s/','spreadsheets/d/'),'_blank');
+  window.open('https://docs.google.com/spreadsheets/d/1ooItVMJtlUOmiJVvYbDCc-C9A19__Ja1qfpYgJUiEoU/edit','_blank');
 }
+
 
 function reset(){
   selSup=selAdmin=selJefe=null;uDni='';uName='';
