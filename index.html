@@ -59,11 +59,11 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color
 .lh1{font-size:34px;font-weight:900;line-height:1.1;margin-bottom:12px;}
 .lh1 em{font-style:normal;color:var(--fuc);}
 .lsub{color:var(--muted);font-size:15px;line-height:1.65;max-width:300px;margin:0 auto 28px;}
-.lsteps{display:flex;align-items:center;justify-content:center;margin-bottom:36px;}
-.lstep{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;flex:1;max-width:90px;}
-.lstep .li2{width:42px;height:42px;border-radius:50%;background:rgba(201,0,92,.1);border:2px solid rgba(201,0,92,.35);display:flex;align-items:center;justify-content:center;font-size:18px;}
-.lstep span{font-size:9px;color:var(--muted);font-weight:700;text-align:center;line-height:1.3;white-space:nowrap;}
-.lline{width:10px;height:1px;background:rgba(201,0,92,.3);flex-shrink:0;}
+.lsteps{display:grid;grid-template-columns:1fr 1fr;gap:14px 10px;margin-bottom:32px;width:100%;max-width:320px;}
+.lstep{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(201,0,92,.06);border:1px solid rgba(201,0,92,.2);border-radius:14px;padding:14px 8px 12px;}
+.lstep .li2{width:52px;height:52px;border-radius:50%;background:rgba(201,0,92,.1);border:2px solid rgba(201,0,92,.35);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:2px;}
+.lstep span{font-size:11px;color:var(--muted);font-weight:800;text-align:center;line-height:1.3;white-space:nowrap;}
+.lline{display:none;}
 
 /* ═══ DNI ═══ */
 #s2{background:var(--bg);}
@@ -260,11 +260,8 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color
     <p class="lsub">Identifica a tu equipo en menos de 2 minutos. Rápido, visual y desde tu celular.</p>
     <div class="lsteps">
       <div class="lstep"><div class="li2">📋</div><span>Regístrate</span></div>
-      <div class="lline"></div>
       <div class="lstep"><div class="li2">👕</div><span>Supervisor</span></div>
-      <div class="lline"></div>
       <div class="lstep"><div class="li2">👔</div><span>Administrador</span></div>
-      <div class="lline"></div>
       <div class="lstep"><div class="li2">🏅</div><span>Jefe de Negocio</span></div>
     </div>
     <button class="btn" style="max-width:320px;width:100%" onclick="show('s2')">Comenzar →</button>
