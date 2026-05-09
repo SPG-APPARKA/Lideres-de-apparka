@@ -814,8 +814,12 @@ function setUserBadge(prefix){
 }
 
 // ── SCREEN NAV ──
-function goScreen(fullId, back){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+function goScreen(id, back){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var el=document.getElementById(id)||document.getElementById('sc-'+id);
+  if(el){ el.classList.add('active'); }
+  window.scrollTo(0,0);
+});
   var el=document.getElementById(fullId)||document.getElementById('sc-'+fullId);
   if(el)el.classList.add('active');
   window.scrollTo(0,0);
@@ -1040,6 +1044,30 @@ function goJefe(b){}
 function goToSup(b){}
 function goSup(b){ initSup(); }
 function goFin(){ }
+
+// ── SPLASH: solo logo 3.5 segundos, sin texto ni barra ──
+(function(){
+  var stars=document.getElementById('splashStars');
+  if(stars){
+    for(var i=0;i<80;i++){
+      var s=document.createElement('div'); s.className='star';
+      var sz=Math.random()*2.5+.5;
+      s.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;--d:'+(1.5+Math.random()*3)+'s;--del:'+(Math.random()*3)+'s;--op:'+(0.3+Math.random()*0.7)+';';
+      stars.appendChild(s);
+    }
+  }
+  setTimeout(function(){
+    var splash=document.getElementById('sc-splash');
+    if(!splash) return;
+    splash.style.transition='opacity 0.8s ease';
+    splash.style.opacity='0';
+    setTimeout(function(){
+      document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+      var land=document.getElementById('sc-land');
+      if(land) land.classList.add('active');
+    }, 800);
+  }, 3500);
+})();
 
 </script>
 
