@@ -68,7 +68,7 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color
 /* ═══ DNI ═══ */
 #s2{background:var(--bg);}
 .dtop{background:linear-gradient(180deg,rgba(201,0,92,.15) 0%,transparent 100%);padding:36px 24px 28px;text-align:center;}
-.dtop img{height:52px;margin-bottom:16px;}
+.dtop img{height:72px;margin-bottom:18px;}
 .dtit{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:6px;}
 .dtit em{font-style:normal;color:var(--fuc);}
 .dsub{color:var(--muted);font-size:13px;}
@@ -625,13 +625,63 @@ function reset(){
 
 function getRecs(){try{return JSON.parse(localStorage.getItem('ar')||'[]');}catch(e){return[];}}
 function togglePanel(){
-  var recs=getRecs();
-  document.getElementById('ptotal').textContent=recs.length;
-  document.getElementById('ptoday').textContent=recs.filter(function(r){return r.ts&&new Date(r.ts).toDateString()===new Date().toDateString();}).length;
-  var tb=document.getElementById('ptbody');
-  tb.innerHTML=recs.length?[...recs].reverse().slice(0,50).map(function(r,i){return '<tr><td>'+(recs.length-i)+'</td><td><b>'+r.dni+'</b></td><td>'+r.nombre+'</td><td style="color:var(--fuc)">'+r.supervisor+'</td><td>'+r.admin+'</td><td>'+r.jefe+'</td><td style="color:var(--muted);font-size:11px">'+r.fecha+'</td></tr>';}).join(''):'<tr><td colspan="7" class="apempty">Sin registros</td></tr>';
-  document.getElementById('apanel').classList.toggle('show');
+  var panel = document.getElementById('apanel');
+  var isOpen = panel.classList.contains('show');
+  if(isOpen){ panel.classList.remove('show'); return; }
+  panel.classList.add('show');
+  // Load from localStorage first
+  var recs = getRecs();
+  renderPanel(recs);
+  // Then try to load ALL records from Google Sheets
+  loadFromSheets();
 }
+
+function renderPanel(recs){
+  document.getElementById('ptotal').textContent = recs.length;
+  document.getElementById('ptoday').textContent = recs.filter(function(r){
+    return r.ts && new Date(r.ts).toDateString()===new Date().toDateString();
+  }).length;
+  var tb = document.getElementById('ptbody');
+  if(!recs.length){
+    tb.innerHTML='<tr><td colspan="7" class="apempty">Sin registros</td></tr>';
+    return;
+  }
+  tb.innerHTML = [...recs].reverse().slice(0,200).map(function(r,i){
+    return '<tr><td>'+(recs.length-i)+'</td><td><b>'+(r.dni||r.DNI||'')+'</b></td><td>'+(r.nombre||r.Nombre||'')+'</td><td style="color:var(--fuc)">'+(r.supervisor||r.Supervisor||'')+'</td><td>'+(r.admin||r.Admin||r.Administrador||'')+'</td><td>'+(r.jefe||r.Jefe||'')+'</td><td style="color:var(--muted);font-size:11px">'+(r.fecha||r.Fecha||'')+'</td></tr>';
+  }).join('');
+}
+
+function loadFromSheets(){
+  var tb = document.getElementById('ptbody');
+  // Show loading state
+  var loadMsg = document.createElement('tr');
+  loadMsg.id = 'loading-row';
+  loadMsg.innerHTML = '<td colspan="7" style="text-align:center;padding:12px;color:var(--muted)">🔄 Cargando todos los registros…</td>';
+  if(tb.firstChild) tb.insertBefore(loadMsg, tb.firstChild);
+  
+  // Fetch all data from Apps Script
+  fetch(SHEETS_URL + '?action=getAll&t=' + Date.now(), {mode:'cors'})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var lr = document.getElementById('loading-row');
+      if(lr) lr.remove();
+      if(data && data.records && data.records.length){
+        document.getElementById('ptotal').textContent = data.records.length;
+        document.getElementById('ptoday').textContent = data.records.filter(function(r){
+          var f = r.Fecha||r.fecha||'';
+          var today = new Date().toLocaleDateString('es-PE');
+          return f.includes(today.split('/')[0]);
+        }).length;
+        renderPanel(data.records);
+      }
+    })
+    .catch(function(){
+      var lr = document.getElementById('loading-row');
+      if(lr) lr.remove();
+    });
+}
+
+
 function dlExcel(){
   var recs=getRecs();
   if(!recs.length){alert('No hay registros');return;}
