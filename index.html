@@ -206,13 +206,13 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color
 .cp{position:absolute;border-radius:3px;animation:cf 3s ease-in forwards;}
 @keyframes cf{from{transform:translateY(-20px) rotate(0);opacity:1}to{transform:translateY(110vh) rotate(900deg);opacity:0}}
 
-/* PERMANENCIA */
-.sel-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
-.sel-opt{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text);transition:border-color .15s,background .15s;display:flex;align-items:center;gap:10px;}
-.sel-opt:active{transform:scale(.98);}
-.sel-opt.chosen{border-color:var(--fuc);background:rgba(201,0,92,.08);color:var(--fuc);}
-.sel-opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:10px;}
-.sel-opt.chosen .dot{background:var(--fuc);border-color:var(--fuc);}
+
+/* SELECT DROPDOWN */
+.select-wrap{position:relative;margin-bottom:4px;}
+.fselect{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer;background-color:var(--card);}
+.fselect option{background:var(--card);color:var(--text);font-family:'Nunito',sans-serif;font-weight:700;}
+.select-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--muted);pointer-events:none;}
+.fselect.ok + .select-arrow{color:var(--fuc);}
 </style>
 </head>
 <body>
@@ -270,14 +270,18 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color
     <input class="finput" id="inombre" type="text" placeholder="Ej: María García López" oninput="chkNombre(this)">
     <div class="ferr" id="enombre">Ingresa nombre y apellido</div>
     <div class="flabel">⏱️ Tiempo en la empresa</div>
-    <div class="sel-opts" id="perm-opts">
-      <div class="sel-opt" onclick="selPerm(this,'1-21 días')"><div class="dot">●</div>1 a 21 días</div>
-      <div class="sel-opt" onclick="selPerm(this,'22 días a 3 meses')"><div class="dot">●</div>22 días a 3 meses</div>
-      <div class="sel-opt" onclick="selPerm(this,'3 a 6 meses')"><div class="dot">●</div>3 a 6 meses</div>
-      <div class="sel-opt" onclick="selPerm(this,'6 meses a 1 año')"><div class="dot">●</div>6 meses a 1 año</div>
-      <div class="sel-opt" onclick="selPerm(this,'1 a 2 años')"><div class="dot">●</div>1 a 2 años</div>
-      <div class="sel-opt" onclick="selPerm(this,'2 a 3 años')"><div class="dot">●</div>2 a 3 años</div>
-      <div class="sel-opt" onclick="selPerm(this,'3 años a más')"><div class="dot">●</div>3 años a más</div>
+    <div class="select-wrap">
+      <select class="finput fselect" id="iperm" onchange="selPerm(this)">
+        <option value="">Selecciona una opción…</option>
+        <option value="1 a 21 días">1 a 21 días</option>
+        <option value="22 días a 3 meses">22 días a 3 meses</option>
+        <option value="3 a 6 meses">3 a 6 meses</option>
+        <option value="6 meses a 1 año">6 meses a 1 año</option>
+        <option value="1 a 2 años">1 a 2 años</option>
+        <option value="2 a 3 años">2 a 3 años</option>
+        <option value="3 años a más">3 años a más</option>
+      </select>
+      <span class="select-arrow">▾</span>
     </div>
     <div class="ferr" id="eperm">Selecciona tu tiempo en la empresa</div>
     <div class="wcard" id="wcard">
@@ -453,12 +457,10 @@ function setBadge(){
   });
 }
 
-function selPerm(el, val){
-  document.querySelectorAll('.sel-opt').forEach(function(o){o.classList.remove('chosen');o.querySelector('.dot').textContent='';});
-  el.classList.add('chosen');
-  el.querySelector('.dot').textContent='✓';
-  uPerm=val;
-  document.getElementById('eperm').className='ferr';
+function selPerm(el){
+  uPerm = el.value;
+  el.className = 'finput fselect' + (uPerm ? ' ok' : '');
+  document.getElementById('eperm').className = 'ferr';
   chkForm();
 }
 
@@ -601,7 +603,7 @@ function reset(){
   document.getElementById('wcard').classList.remove('show');
   document.getElementById('bdni').disabled=true;
   uPerm='';
-  document.querySelectorAll('.sel-opt').forEach(function(o){o.classList.remove('chosen');o.querySelector('.dot').textContent='';});
+  var ps=document.getElementById('iperm'); if(ps){ps.value='';ps.className='finput fselect';}
   show('s1');
 }
 
